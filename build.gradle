@@ -310,7 +310,7 @@ tasks.register('verifyReleaseConfiguration') {
     group = 'verification'
     description = 'Validates release identity, target metadata, and dependency policy.'
     doLast {
-        if (project.mod_version != '2.2.3.110021') {
+        if (project.mod_version != '2.2.4.110021') {
             throw new GradleException("Unexpected ElectricAdvantage release version: ${project.mod_version}")
         }
         if (project.minecraft_version != '1.10.2'
@@ -326,7 +326,7 @@ tasks.register('verifyReleaseConfiguration') {
             throw new GradleException('Unexpected release dispatcher target metadata')
         }
         if (project.mod_id != 'electricadvantage'
-                || project.group.toString() != 'com.mcmoddev.electricadvantage'
+                || project.group.toString() != 'zone.moddev.mc.electricadvantage'
                 || base.archivesName.get() != 'ElectricAdvantage'
                 || project.mod_license != 'GPL-3.0-only'
                 || project.curseforge_project_id != '240985') {
@@ -337,10 +337,10 @@ tasks.register('verifyReleaseConfiguration') {
                 || project.cf_versions != '1.10.2') {
             throw new GradleException('Unexpected CurseForge dependency or game-version metadata')
         }
-        if (project.poweradvantage_version != '2.4.2.110021'
+        if (project.poweradvantage_version != '2.4.3.110021'
                 || project.poweradvantage_source_repository != 'MinecraftModDevelopmentMods/PowerAdvantage'
-                || project.poweradvantage_source_ref != '18e5192b73c6768208c1d5c5687ea230ed470bc6'
-                || project.poweradvantage_deobf_sha256 != '84F26845E7A161A7062B2C44522115B2C253F4B2329E55B568B290C215EDD78D') {
+                || project.poweradvantage_source_ref != '2443eaae7c666b8d54a5c9c30091892b79e80994'
+                || project.poweradvantage_deobf_sha256 != '316262B51DDF4BD4258E19CC45221959E20133855B37E2367686F752A48C07C5') {
             throw new GradleException('Unexpected PowerAdvantage compile dependency identity')
         }
         if (project.orespawn_version != '4.0.8.110021'
@@ -359,10 +359,10 @@ tasks.register('verifyReleaseConfiguration') {
             }
         }
         String mainSource = file(
-                'src/main/java/com/mcmoddev/electricadvantage/ElectricAdvantage.java').getText('UTF-8')
+                'src/main/java/zone/moddev/mc/electricadvantage/ElectricAdvantage.java').getText('UTF-8')
         if (!mainSource.contains('MODID = "electricadvantage"')
-                || !mainSource.contains('VERSION = "2.2.3.110021"')
-                || !mainSource.contains('required-after:orespawn@[4.0.6,5.0.0);required-after:poweradvantage;after:basemetals')) {
+                || !mainSource.contains('VERSION = "2.2.4.110021"')
+                || !mainSource.contains('required-after:orespawn@[4.0.6,5.0.0);required-after:poweradvantage@[2.4.3.110021,);after:basemetals')) {
             throw new GradleException('ElectricAdvantage source identity or dependency policy changed')
         }
         def metadata = new JsonSlurper().parse(file('src/main/resources/mcmod.info'))
@@ -402,8 +402,8 @@ tasks.register('verifyReleaseDependencies') {
             ['cyano/poweradvantage/api/PoweredEntity.class',
              'cyano/poweradvantage/api/GUIBlock.class',
              'cyano/poweradvantage/api/FluidCategoryRegistry.class',
-             'com/mcmoddev/poweradvantage/conduitnetwork/ConduitRegistry.class',
-             'com/mcmoddev/poweradvantage/init/Fluids.class'].each { required ->
+             'zone/moddev/mc/poweradvantage/conduitnetwork/ConduitRegistry.class',
+             'zone/moddev/mc/poweradvantage/init/Fluids.class'].each { required ->
                 if (zip.getEntry(required) == null) {
                     throw new GradleException("PowerAdvantage dependency is missing ${required}")
                 }
@@ -473,8 +473,8 @@ tasks.register('verifyReleaseArtifacts') {
         new ZipFile(mainJar).withCloseable { zip ->
             List<String> names = zip.entries().collect { it.name }
             ['mcmod.info', 'pack.mcmeta',
-             'com/mcmoddev/electricadvantage/ElectricAdvantage.class',
-             'com/mcmoddev/electricadvantage/machines/ElectricDrillTileEntity.class',
+             'zone/moddev/mc/electricadvantage/ElectricAdvantage.class',
+             'zone/moddev/mc/electricadvantage/machines/ElectricDrillTileEntity.class',
              'assets/electricadvantage/lang/en_US.lang'].each { required ->
                 if (!names.contains(required)) {
                     throw new GradleException("Release jar is missing ${required}")
@@ -482,7 +482,8 @@ tasks.register('verifyReleaseArtifacts') {
             }
             ['agent-notes/', '.codex/', 'src/test/', 'fernflower_abstract_parameter_names.txt',
              'cyano/poweradvantage/',
-             'com/mcmoddev/poweradvantage/', 'cyano/basemetals/', 'com/mcmoddev/lib/',
+             'com/mcmoddev/electricadvantage/', 'com/mcmoddev/poweradvantage/',
+             'zone/moddev/mc/poweradvantage/', 'cyano/basemetals/', 'com/mcmoddev/lib/',
              'zone/moddev/mc/orespawn/', 'com/mcmoddev/orespawn/',
              'net/minecraft/', 'net/minecraftforge/'].each { forbidden ->
                 if (names.any { it.contains(forbidden) }) {
@@ -518,8 +519,8 @@ tasks.register('verifyReleaseArtifacts') {
         }
 
         new ZipFile(new File(libs, expectedReleaseFiles.get()[1])).withCloseable { sourceZip ->
-            if (sourceZip.getEntry('com/mcmoddev/electricadvantage/ElectricAdvantage.java') == null
-                    || sourceZip.getEntry('com/mcmoddev/electricadvantage/machines/ElectricDrillTileEntity.java') == null) {
+            if (sourceZip.getEntry('zone/moddev/mc/electricadvantage/ElectricAdvantage.java') == null
+                    || sourceZip.getEntry('zone/moddev/mc/electricadvantage/machines/ElectricDrillTileEntity.java') == null) {
                 throw new GradleException('Sources jar is missing required ElectricAdvantage sources')
             }
         }

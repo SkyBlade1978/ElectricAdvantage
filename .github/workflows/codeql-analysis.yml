@@ -37,7 +37,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           repository: MinecraftModDevelopmentMods/PowerAdvantage
-          ref: 18e5192b73c6768208c1d5c5687ea230ed470bc6
+          ref: 2443eaae7c666b8d54a5c9c30091892b79e80994
           path: .ci-dependencies/PowerAdvantage
 
       - name: Install Java 8 toolchain
@@ -86,7 +86,7 @@ jobs:
               -PoreSpawnDeobfJar="${{ steps.orespawn.outputs.jar }}" \
               --no-daemon --stacktrace
           )
-          jar="$dependency/build/libs-dev/PowerAdvantage-2.4.2.110021-deobf.jar"
+          jar="$dependency/build/libs-dev/PowerAdvantage-2.4.3.110021-deobf.jar"
           test -f "$jar"
           echo "jar=$jar" >> "$GITHUB_OUTPUT"
 
