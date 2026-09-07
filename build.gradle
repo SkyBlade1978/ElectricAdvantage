@@ -158,6 +158,17 @@ if (!powerAdvantageDeobfJar.isFile()) {
             + "Run gradlew.bat deobfJar in ../../PowerAdvantage first, or pass "
             + "-PpowerAdvantageDeobfJar=<path>.")
 }
+// OreSpawn is required at runtime and supplies only its public typed provider API.
+def defaultOreSpawnDeobfJar = file("../../../../MinecraftMineralogy/OS110/OreSpawn/build/libs-dev/" \
+        + "OreSpawn-${project.orespawn_version}-deobf.jar")
+def oreSpawnDeobfJar = providers.gradleProperty('oreSpawnDeobfJar')
+        .map { file(it) }
+        .getOrElse(defaultOreSpawnDeobfJar)
+if (!oreSpawnDeobfJar.isFile()) {
+    throw new GradleException("Missing OreSpawn deobf jar at ${oreSpawnDeobfJar}. "
+            + "Build pinned OreSpawn commit ${project.orespawn_source_commit}, or pass "
+            + "-PoreSpawnDeobfJar=<path>.")
+}
 
 dependencies {
     implementation minecraft.dependency(
@@ -168,6 +179,10 @@ dependencies {
     // PowerAdvantage is required at runtime but remains a separate mod jar.
     compileOnly files(powerAdvantageDeobfJar)
     runtimeOnly files(powerAdvantageDeobfJar)
+    compileOnly files(oreSpawnDeobfJar)
+    runtimeOnly files(oreSpawnDeobfJar)
+    testImplementation files(oreSpawnDeobfJar)
+    testImplementation 'junit:junit:4.13.2'
 }
 
 tasks.named('processResources', ProcessResources) {
@@ -295,7 +310,7 @@ tasks.register('verifyReleaseConfiguration') {
     group = 'verification'
     description = 'Validates release identity, target metadata, and dependency policy.'
     doLast {
-        if (project.mod_version != '2.2.1.110021') {
+        if (project.mod_version != '2.2.3.110021') {
             throw new GradleException("Unexpected ElectricAdvantage release version: ${project.mod_version}")
         }
         if (project.minecraft_version != '1.10.2'
@@ -317,29 +332,37 @@ tasks.register('verifyReleaseConfiguration') {
                 || project.curseforge_project_id != '240985') {
             throw new GradleException('Unexpected Forge, Maven, archive, or CurseForge identity')
         }
-        if (project.cf_requirements != 'power-advantage,base-metals'
+        if (project.cf_requirements != 'power-advantage,base-metals,mmd-orespawn'
                 || project.cf_optionals != ''
                 || project.cf_versions != '1.10.2') {
             throw new GradleException('Unexpected CurseForge dependency or game-version metadata')
         }
-        if (project.poweradvantage_version != '2.4.1.110021'
+        if (project.poweradvantage_version != '2.4.2.110021'
                 || project.poweradvantage_source_repository != 'MinecraftModDevelopmentMods/PowerAdvantage'
-                || project.poweradvantage_source_ref != '6958ed2dfdd745ebc1f614a32072765af061fe8e'
-                || project.poweradvantage_deobf_sha256 != '2C2B688152C62A48A458ED15918D994BE0F9C371EA77C195D92D2EC5531E7CB5') {
+                || project.poweradvantage_source_ref != '18e5192b73c6768208c1d5c5687ea230ed470bc6'
+                || project.poweradvantage_deobf_sha256 != '84F26845E7A161A7062B2C44522115B2C253F4B2329E55B568B290C215EDD78D') {
             throw new GradleException('Unexpected PowerAdvantage compile dependency identity')
+        }
+        if (project.orespawn_version != '4.0.8.110021'
+                || project.orespawn_source_repository != 'MinecraftModDevelopmentMods/OreSpawn'
+                || project.orespawn_source_commit != '5a50df1158e948c8db55814e819090b34c12d765'
+                || project.orespawn_deobf_sha256 != '33BFB8C9D626D071147A0952A74B633F0BCC6A27E0408B4524370F4833B003C2') {
+            throw new GradleException('Unexpected OreSpawn API dependency identity')
         }
         ['.github/workflows/ci.yml', '.github/workflows/codeql-analysis.yml'].each { workflowPath ->
             String workflow = file(workflowPath).getText('UTF-8')
             if (!workflow.contains('repository: ' + project.poweradvantage_source_repository)
-                    || !workflow.contains('ref: ' + project.poweradvantage_source_ref)) {
-                throw new GradleException("${workflowPath} does not build the pinned PowerAdvantage source")
+                    || !workflow.contains('ref: ' + project.poweradvantage_source_ref)
+                    || !workflow.contains('repository: ' + project.orespawn_source_repository)
+                    || !workflow.contains('ref: ' + project.orespawn_source_commit)) {
+                throw new GradleException("${workflowPath} does not build the pinned Advantage dependencies")
             }
         }
         String mainSource = file(
                 'src/main/java/com/mcmoddev/electricadvantage/ElectricAdvantage.java').getText('UTF-8')
         if (!mainSource.contains('MODID = "electricadvantage"')
-                || !mainSource.contains('VERSION = "2.2.1.110021"')
-                || !mainSource.contains('dependencies = "required-after:poweradvantage;after:basemetals"')) {
+                || !mainSource.contains('VERSION = "2.2.3.110021"')
+                || !mainSource.contains('required-after:orespawn@[4.0.6,5.0.0);required-after:poweradvantage;after:basemetals')) {
             throw new GradleException('ElectricAdvantage source identity or dependency policy changed')
         }
         def metadata = new JsonSlurper().parse(file('src/main/resources/mcmod.info'))
@@ -355,6 +378,20 @@ tasks.register('verifyReleaseDependencies') {
     description = 'Resolves Forge and audits the exact required PowerAdvantage development jar.'
     dependsOn tasks.named('verifyReleaseConfiguration')
     doLast {
+        String actualOreSpawnHash = MessageDigest.getInstance('SHA-256')
+                .digest(oreSpawnDeobfJar.bytes).encodeHex().toString().toUpperCase()
+        if (actualOreSpawnHash != project.orespawn_deobf_sha256) {
+            throw new GradleException("OreSpawn SHA-256 is ${actualOreSpawnHash}, expected "
+                    + project.orespawn_deobf_sha256)
+        }
+        new ZipFile(oreSpawnDeobfJar).withCloseable { zip ->
+            ['zone/moddev/mc/orespawn/api/OreSpawnApi.class',
+             'zone/moddev/mc/orespawn/api/WorldgenProvider.class'].each { required ->
+                if (zip.getEntry(required) == null) {
+                    throw new GradleException("OreSpawn API dependency is missing ${required}")
+                }
+            }
+        }
         String actualHash = MessageDigest.getInstance('SHA-256')
                 .digest(powerAdvantageDeobfJar.bytes).encodeHex().toString().toUpperCase()
         if (actualHash != project.poweradvantage_deobf_sha256) {
@@ -364,6 +401,7 @@ tasks.register('verifyReleaseDependencies') {
         new ZipFile(powerAdvantageDeobfJar).withCloseable { zip ->
             ['cyano/poweradvantage/api/PoweredEntity.class',
              'cyano/poweradvantage/api/GUIBlock.class',
+             'cyano/poweradvantage/api/FluidCategoryRegistry.class',
              'com/mcmoddev/poweradvantage/conduitnetwork/ConduitRegistry.class',
              'com/mcmoddev/poweradvantage/init/Fluids.class'].each { required ->
                 if (zip.getEntry(required) == null) {
@@ -377,19 +415,21 @@ tasks.register('verifyReleaseDependencies') {
         }
 
         Set<File> compileFiles = configurations.compileClasspath.files.collect { it.canonicalFile } as Set<File>
-        if (!compileFiles.contains(powerAdvantageDeobfJar.canonicalFile)) {
-            throw new GradleException('PowerAdvantage is missing from compileClasspath')
+        if (!compileFiles.contains(powerAdvantageDeobfJar.canonicalFile)
+                || !compileFiles.contains(oreSpawnDeobfJar.canonicalFile)) {
+            throw new GradleException('PowerAdvantage or OreSpawn is missing from compileClasspath')
         }
         Set<File> runtimeFiles = configurations.runtimeClasspath.files.collect { it.canonicalFile } as Set<File>
-        if (!runtimeFiles.contains(powerAdvantageDeobfJar.canonicalFile)) {
-            throw new GradleException('PowerAdvantage is missing from runtimeClasspath')
+        if (!runtimeFiles.contains(powerAdvantageDeobfJar.canonicalFile)
+                || !runtimeFiles.contains(oreSpawnDeobfJar.canonicalFile)) {
+            throw new GradleException('PowerAdvantage or OreSpawn is missing from runtimeClasspath')
         }
         List<String> forbiddenRuntimeMods = runtimeFiles.collect { it.name.toLowerCase(Locale.ROOT) }
                 .findAll { name ->
-                    name.contains('basemetals') || name.contains('orespawn')
+                    name.contains('basemetals')
                 }
         if (!forbiddenRuntimeMods.isEmpty()) {
-            throw new GradleException("BaseMetals or OreSpawn leaked onto runtimeClasspath: ${forbiddenRuntimeMods}")
+            throw new GradleException("BaseMetals leaked onto runtimeClasspath: ${forbiddenRuntimeMods}")
         }
     }
 }
@@ -443,6 +483,7 @@ tasks.register('verifyReleaseArtifacts') {
             ['agent-notes/', '.codex/', 'src/test/', 'fernflower_abstract_parameter_names.txt',
              'cyano/poweradvantage/',
              'com/mcmoddev/poweradvantage/', 'cyano/basemetals/', 'com/mcmoddev/lib/',
+             'zone/moddev/mc/orespawn/', 'com/mcmoddev/orespawn/',
              'net/minecraft/', 'net/minecraftforge/'].each { forbidden ->
                 if (names.any { it.contains(forbidden) }) {
                     throw new GradleException("Release jar contains forbidden entry matching ${forbidden}")

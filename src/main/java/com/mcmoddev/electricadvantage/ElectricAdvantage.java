@@ -12,17 +12,12 @@ import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
-import java.io.IOException;
-import java.nio.charset.Charset;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
 @Mod(modid = ElectricAdvantage.MODID, version = ElectricAdvantage.VERSION, name=ElectricAdvantage.NAME, 
-		dependencies = "required-after:poweradvantage;after:basemetals",
+		dependencies = "required-after:orespawn@[4.0.6,5.0.0);required-after:poweradvantage;after:basemetals",
 		acceptedMinecraftVersions = "[1.10.2,)")
 public class ElectricAdvantage
 {/** The identifier for this mod */
@@ -30,7 +25,7 @@ public class ElectricAdvantage
 	/** The display name for this mod */
 	public static final String NAME = "Electric Advantage";
 	/** The version of this mod, in the format major.minor.update */
-	public static final String VERSION = "2.2.1.110021";
+	public static final String VERSION = "2.2.3.110021";
 
 	public static ElectricAdvantage INSTANCE = null;
 	
@@ -57,16 +52,6 @@ public class ElectricAdvantage
 + "number to fabricate especially complex recipes. If fabricators are causing too much server lag, "
 + "try reducing this number.");
 
-		Path orespawnFolder = Paths.get(event.getSuggestedConfigurationFile().toPath().getParent().toString(),"orespawn");
-		Path orespawnFile = Paths.get(orespawnFolder.toString(),MODID+".json");
-		if(!Files.exists(orespawnFile)){
-			try{
-				Files.createDirectories(orespawnFile.getParent());
-				Files.write(orespawnFile, Arrays.asList(Data.ORESPAWN_FILE_CONTENTS.split("\n")), Charset.forName("UTF-8"));
-			} catch (IOException e) {
-				FMLLog.severe(MODID+": Error: Failed to write file "+orespawnFile);
-			}
-		}
 
 		LASER_SOUND = config.getString("laser_sound", "options", LASER_SOUND, "Set the sound to use when the laser fires");
 
@@ -79,6 +64,7 @@ public class ElectricAdvantage
 
 		Blocks.init();
 		Items.init();
+		OreSpawnWorldGen.register(config.getConfigFile().toPath().getParent());
 		TreasureChests.init(config.getConfigFile().toPath().getParent());
 
 

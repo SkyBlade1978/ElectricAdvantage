@@ -62,7 +62,7 @@ public abstract class Blocks {
 		
 		electric_conduit = addBlock(new ElectricConduitBlock(),"electric_conduit","wire","conduitElectricity","powerCable","cableElectric");
 		lithium_ore = addBlock(new Ore(1),"li_ore","oreLithium");
-		sulfur_ore = addBlock(new Ore(new ItemStack(Items.sulfur_powder,1),0,3),"sulfur_ore","oreSulfur");
+		sulfur_ore = addBlock(new Ore(new ItemStack(Items.sulfur_powder,1),0,3),"sulfur_ore","oreSulfur","oreSulphur");
 		
 		electric_track = addBlock(new ElectricScaffoldBlock(),"electric_track");
 		laser_turret = (GUIBlock)addBlock(new LaserTurretBlock(false),"laser_turret");

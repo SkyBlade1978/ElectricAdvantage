@@ -26,11 +26,18 @@ jobs:
       - name: Check out ElectricAdvantage
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
+      - name: Check out pinned OreSpawn
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: MinecraftModDevelopmentMods/OreSpawn
+          ref: 5a50df1158e948c8db55814e819090b34c12d765
+          path: .ci-dependencies/OreSpawn
+
       - name: Check out pinned PowerAdvantage
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           repository: MinecraftModDevelopmentMods/PowerAdvantage
-          ref: 6958ed2dfdd745ebc1f614a32072765af061fe8e
+          ref: 18e5192b73c6768208c1d5c5687ea230ed470bc6
           path: .ci-dependencies/PowerAdvantage
 
       - name: Install Java 8 toolchain
@@ -48,6 +55,21 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb # v6
 
+      - name: Build pinned OreSpawn development jar
+        id: orespawn
+        shell: bash
+        run: |
+          set -euo pipefail
+          dependency="$GITHUB_WORKSPACE/.ci-dependencies/OreSpawn"
+          chmod +x "$dependency/gradlew"
+          (
+            cd "$dependency"
+            ./gradlew deobfJar --no-daemon --stacktrace
+          )
+          jar="$dependency/build/libs-dev/OreSpawn-4.0.8.110021-deobf.jar"
+          test -f "$jar"
+          echo "jar=$jar" >> "$GITHUB_OUTPUT"
+
       - name: Build pinned PowerAdvantage development jar
         id: poweradvantage
         shell: bash
@@ -60,9 +82,11 @@ jobs:
             cd "$dependency"
             bash gradle/stage-reborncore-release.sh "$mirror"
             ./gradlew deobfJar verifyReleaseDependencies \
-              -PrebornCoreVerificationRepository="$mirror" --no-daemon --stacktrace
+              -PrebornCoreVerificationRepository="$mirror" \
+              -PoreSpawnDeobfJar="${{ steps.orespawn.outputs.jar }}" \
+              --no-daemon --stacktrace
           )
-          jar="$dependency/build/libs-dev/PowerAdvantage-2.4.1.110021-deobf.jar"
+          jar="$dependency/build/libs-dev/PowerAdvantage-2.4.2.110021-deobf.jar"
           test -f "$jar"
           echo "jar=$jar" >> "$GITHUB_OUTPUT"
 
@@ -75,7 +99,8 @@ jobs:
         run: |
           chmod +x ./gradlew
           ./gradlew clean classes --rerun-tasks --no-build-cache --no-daemon --stacktrace \
-            -PpowerAdvantageDeobfJar=${{ steps.poweradvantage.outputs.jar }}
+            -PpowerAdvantageDeobfJar=${{ steps.poweradvantage.outputs.jar }} \
+            -PoreSpawnDeobfJar=${{ steps.orespawn.outputs.jar }}
 
       - name: Analyze
         uses: github/codeql-action/analyze@db488ddef3bf6cb639b32c2e9a7c0a7ea8271d28 # v4

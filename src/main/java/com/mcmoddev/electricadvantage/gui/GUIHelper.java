@@ -30,7 +30,8 @@ public class GUIHelper {
 	}
 	
 	public static void drawProgressBar(int x, int y, float progress, GUIContainer gc){
-		int n = (int)(8 * (progress + 0.0625f) );
+		float clampedProgress = Math.max(0.0f, Math.min(progress, 1.0f));
+		int n = (int)(8 * (clampedProgress + 0.0625f) );
 		if(n <= 0) return;
 		int w = 1 + (n * LED_BAR_W8);
 		gc.drawTexturedModalRect(x, y, LED_BAR_X, LED_BAR_Y, w, LED_BAR_H);
