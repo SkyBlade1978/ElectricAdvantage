@@ -1,3 +1,10 @@
+Electric Advantage 2.2.2.110021
+
+- Register the Hydroelectric Generator GUI so it opens on right-click.
+- Display Hydroelectric Generator activity on the normalized power meter without changing its generated electricity.
+- Clamp machine progress bars to their valid display range.
+- Preserve generator tile entities during active-state changes so hydro turbines continue producing and charging connected batteries.
+
 Electric Advantage 2.2.1.110021
 
 - Move the Minecraft 1.10.2 build to ForgeGradle 7 and Gradle 9.6.1.

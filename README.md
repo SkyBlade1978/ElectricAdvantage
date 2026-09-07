@@ -2,6 +2,8 @@
 
 Electric Advantage adds electrical generation, storage, and machines to Power Advantage for Minecraft 1.10.2.
 
+The cross-mod [Advantage Works 1.10.2 Handbook](https://github.com/MinecraftModDevelopmentMods/PowerAdvantage/blob/master-1.10.2/docs/1.10/README.md) includes the Electrician's Handbook, rated figures, commissioning layouts, and persistence tests.
+
 ## Building Minecraft 1.10.2
 
 The `master-1.10.2` build uses ForgeGradle 7.0.34 and Gradle 9.6.1. Run Gradle with Java 17; Gradle resolves the Java 8 toolchain used for compilation.

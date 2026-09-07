@@ -53,9 +53,9 @@ public class HydroelectricGeneratorTileEntity extends ElectricGeneratorTileEntit
 	@Override
 	public float getPowerOutput() {
 		if(this.isActive()){
-			return 15;
+			return 1.0f;
 		} else {
-			return 0;
+			return 0.0f;
 		}
 	}
 
