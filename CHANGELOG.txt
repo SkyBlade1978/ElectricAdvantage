@@ -1,3 +1,10 @@
+Electric Advantage 2.2.3.110021
+
+- Register typed OreSpawn 4 sulfur and lithium providers while retaining every fallback rule for user override.
+- Prefer Mineralogy then BaseMinerals for fresh sulfur profiles, and BaseMinerals for fresh lithium profiles.
+- Preserve imported legacy OreSpawn settings and established world-profile choices.
+- Register sulfur ore under canonical oreSulfur and British oreSulphur names.
+- Pin and audit OreSpawn's public API without embedding OreSpawn classes.
 Electric Advantage 2.2.2.110021
 
 - Register the Hydroelectric Generator GUI so it opens on right-click.
