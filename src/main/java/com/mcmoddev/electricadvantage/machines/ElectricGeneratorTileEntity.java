@@ -7,7 +7,6 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.play.server.SPacketCustomSound;
-import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.SoundEvent;
@@ -66,15 +65,7 @@ public abstract class ElectricGeneratorTileEntity extends cyano.poweradvantage.a
 		IBlockState old = getWorld().getBlockState(getPos());
 		if(old.getBlock() instanceof ElectricGeneratorBlock 
 				&& (Boolean)old.getValue(ElectricGeneratorBlock.ACTIVE) != active){
-			final TileEntity save = this;
-			final World w = getWorld();
-			final BlockPos pos = this.getPos();
-			w.setBlockState(pos, old.withProperty(ElectricGeneratorBlock.ACTIVE, active),3);
-			if(save != null){
-				w.removeTileEntity(pos);
-				save.validate();
-				w.setTileEntity(pos, save);
-			}
+			getWorld().setBlockState(getPos(), old.withProperty(ElectricGeneratorBlock.ACTIVE, active), 3);
 		}
 	}
 

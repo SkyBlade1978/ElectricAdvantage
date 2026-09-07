@@ -2,6 +2,7 @@ package com.mcmoddev.electricadvantage;
 
 public abstract class Data {
 	
+	// Retained verbatim as an OreSpawn 1 migration fixture for existing installations.
 	public static final String ORESPAWN_FILE_CONTENTS = "{\n"
 + "	\"dimensions\":[\n"
 + "		{\n"
