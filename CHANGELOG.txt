@@ -1,3 +1,8 @@
+Electric Advantage 2.2.4.110021
+
+- Move the implementation namespace to zone.moddev.mc.electricadvantage while preserving runtime identities.
+- Require Power Advantage 2.4.3.110021 or newer for the coordinated namespace migration.
+
 Electric Advantage 2.2.3.110021
 
 - Register typed OreSpawn 4 sulfur and lithium providers while retaining every fallback rule for user override.
